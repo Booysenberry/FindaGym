@@ -1,10 +1,10 @@
 # FindaGym
 iOS app for finding nearby gyms based on the user's location.
 
-## 💡Purpose
+### 💡Purpose
 I built this to better understand mapping and local search using [MapKit](https://developer.apple.com/documentation/mapkit) and Swift's built-in [MKLocalSearch](https://developer.apple.com/documentation/mapkit/mklocalsearch). 
 
-## 🛠 Built using:
+### 🛠 Built using:
 * Swift 4.2
 
 ## 🧰 Dependencies:
