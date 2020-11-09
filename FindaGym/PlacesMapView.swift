@@ -30,65 +30,65 @@ class PlacesMapView: UIViewController, CLLocationManagerDelegate, GADBannerViewD
         setMapRegion()
         initLocationManager()
         
-        // Banner ad setup
-        addBannerViewToView(bannerView)
-        bannerView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
-        bannerView.rootViewController = self
-        bannerView.load(GADRequest())
-        bannerView.delegate = self
+//        // Banner ad setup
+//        addBannerViewToView(bannerView)
+//        bannerView.adUnitID = "ca-app-pub-3940256099942544/2934735716"
+//        bannerView.rootViewController = self
+//        bannerView.load(GADRequest())
+//        bannerView.delegate = self
     }
     
-    // Add banner to view
-    func addBannerViewToView(_ bannerView: GADBannerView) {
-        bannerView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bannerView)
-        if #available(iOS 11.0, *) {
-            // In iOS 11, we need to constrain the view to the safe area.
-            positionBannerViewFullWidthAtBottomOfSafeArea(bannerView)
-        }
-        else {
-            // In lower iOS versions, safe area is not available so we use
-            // bottom layout guide and view edges.
-            positionBannerViewFullWidthAtBottomOfView(bannerView)
-        }
-    }
+//    // Add banner to view
+//    func addBannerViewToView(_ bannerView: GADBannerView) {
+//        bannerView.translatesAutoresizingMaskIntoConstraints = false
+//        view.addSubview(bannerView)
+//        if #available(iOS 11.0, *) {
+//            // In iOS 11, we need to constrain the view to the safe area.
+//            positionBannerViewFullWidthAtBottomOfSafeArea(bannerView)
+//        }
+//        else {
+//            // In lower iOS versions, safe area is not available so we use
+//            // bottom layout guide and view edges.
+//            positionBannerViewFullWidthAtBottomOfView(bannerView)
+//        }
+//    }
     
-    // MARK: - banner ad view positioning
-    @available (iOS 11, *)
-    func positionBannerViewFullWidthAtBottomOfSafeArea(_ bannerView: UIView) {
-        // Position the banner. Stick it to the bottom of the Safe Area.
-        // Make it constrained to the edges of the safe area.
-        let guide = view.safeAreaLayoutGuide
-        NSLayoutConstraint.activate([
-            guide.leftAnchor.constraint(equalTo: bannerView.leftAnchor),
-            guide.rightAnchor.constraint(equalTo: bannerView.rightAnchor),
-            guide.bottomAnchor.constraint(equalTo: bannerView.bottomAnchor)
-        ])
-    }
-    
-    func positionBannerViewFullWidthAtBottomOfView(_ bannerView: UIView) {
-        view.addConstraint(NSLayoutConstraint(item: bannerView,
-                                              attribute: .leading,
-                                              relatedBy: .equal,
-                                              toItem: view,
-                                              attribute: .leading,
-                                              multiplier: 1,
-                                              constant: 0))
-        view.addConstraint(NSLayoutConstraint(item: bannerView,
-                                              attribute: .trailing,
-                                              relatedBy: .equal,
-                                              toItem: view,
-                                              attribute: .trailing,
-                                              multiplier: 1,
-                                              constant: 0))
-        view.addConstraint(NSLayoutConstraint(item: bannerView,
-                                              attribute: .bottom,
-                                              relatedBy: .equal,
-                                              toItem: bottomLayoutGuide,
-                                              attribute: .top,
-                                              multiplier: 1,
-                                              constant: 0))
-    }
+//    // MARK: - banner ad view positioning
+//    @available (iOS 11, *)
+//    func positionBannerViewFullWidthAtBottomOfSafeArea(_ bannerView: UIView) {
+//        // Position the banner. Stick it to the bottom of the Safe Area.
+//        // Make it constrained to the edges of the safe area.
+//        let guide = view.safeAreaLayoutGuide
+//        NSLayoutConstraint.activate([
+//            guide.leftAnchor.constraint(equalTo: bannerView.leftAnchor),
+//            guide.rightAnchor.constraint(equalTo: bannerView.rightAnchor),
+//            guide.bottomAnchor.constraint(equalTo: bannerView.bottomAnchor)
+//        ])
+//    }
+//
+//    func positionBannerViewFullWidthAtBottomOfView(_ bannerView: UIView) {
+//        view.addConstraint(NSLayoutConstraint(item: bannerView,
+//                                              attribute: .leading,
+//                                              relatedBy: .equal,
+//                                              toItem: view,
+//                                              attribute: .leading,
+//                                              multiplier: 1,
+//                                              constant: 0))
+//        view.addConstraint(NSLayoutConstraint(item: bannerView,
+//                                              attribute: .trailing,
+//                                              relatedBy: .equal,
+//                                              toItem: view,
+//                                              attribute: .trailing,
+//                                              multiplier: 1,
+//                                              constant: 0))
+//        view.addConstraint(NSLayoutConstraint(item: bannerView,
+//                                              attribute: .bottom,
+//                                              relatedBy: .equal,
+//                                              toItem: bottomLayoutGuide,
+//                                              attribute: .top,
+//                                              multiplier: 1,
+//                                              constant: 0))
+//    }
     
     @IBAction func centreMapOnUserButtonTapped(_ sender: Any) {
         self.mapView.setUserTrackingMode( MKUserTrackingMode.follow, animated: true)
@@ -107,37 +107,66 @@ class PlacesMapView: UIViewController, CLLocationManagerDelegate, GADBannerViewD
     func initLocationManager() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        checkAuthorisationStatus()
+        locationManagerDidChangeAuthorization(locationManager)
     }
     
-    // Checks the authorisation status of location services
-    func checkAuthorisationStatus(){
-        
-        let status = CLLocationManager.authorizationStatus()
-        
-        if (status == .denied || status == .restricted || !CLLocationManager.locationServicesEnabled()){
+    // Delegate method to check authorization status and request "When In Use" authorization
+        func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+            let status = manager.authorizationStatus
+            if (status == .denied || status == .restricted || !CLLocationManager.locationServicesEnabled()) {
+                
+                let alert = UIAlertController(title: "Need Authorization", message: "We cannot find nearby places if you don't authorize the app to use your location", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+                alert.addAction(UIAlertAction(title: "Settings", style: .default, handler: { _ in
+                    let url = URL(string: UIApplication.openSettingsURLString)!
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                }))
+                self.present(alert, animated: true, completion: nil)
+                
+                print("User denied location access")
+                
+                return
+                
+            }
+            if status == .notDetermined {
+                locationManager.requestWhenInUseAuthorization()
+                return
+            }
             
-            let alert = UIAlertController(title: "Need Authorization", message: "We cannot find nearby places if you don't authorize the app to use your location", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-            alert.addAction(UIAlertAction(title: "Settings", style: .default, handler: { _ in
-                let url = URL(string: UIApplication.openSettingsURLString)!
-                UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            }))
-            self.present(alert, animated: true, completion: nil)
-            
-            print("User denied location access")
-            
-            return
+            locationManager.startUpdatingLocation()
+            mapView.showsUserLocation = true
         }
-        
-        if (status == .notDetermined){
-            locationManager.requestWhenInUseAuthorization()
-            
-        }
-        
-        locationManager.startUpdatingLocation()
-        mapView.showsUserLocation = true
-    }
+    
+//    // Checks the authorisation status of location services
+//    func checkAuthorisationStatus(){
+//
+//        let status = CLLocationManager.authorizationStatus()
+//
+//        if (status == .denied || status == .restricted || !CLLocationManager.locationServicesEnabled()){
+//
+//            let alert = UIAlertController(title: "Need Authorization", message: "We cannot find nearby places if you don't authorize the app to use your location", preferredStyle: .alert)
+//            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+//            alert.addAction(UIAlertAction(title: "Settings", style: .default, handler: { _ in
+//                let url = URL(string: UIApplication.openSettingsURLString)!
+//                UIApplication.shared.open(url, options: [:], completionHandler: nil)
+//            }))
+//            self.present(alert, animated: true, completion: nil)
+//
+//            print("User denied location access")
+//
+//            return
+//
+//
+//        }
+//
+//        if (status == .notDetermined){
+//            locationManager.requestWhenInUseAuthorization()
+//
+//        }
+//
+//        locationManager.startUpdatingLocation()
+//        mapView.showsUserLocation = true
+//    }
     
     func setMapRegion() {
         if let userLocation = locationManager.location?.coordinate {
